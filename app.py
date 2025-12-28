@@ -128,6 +128,12 @@ def main():
             # Load original data for comparison
             df_original = pd.read_csv('data/recipes_sampled.csv')
 
+            # Parse nutrition column to get calories for original data
+            from utils import parse_nutrition
+            nutrition_data = df_original['nutrition'].apply(parse_nutrition)
+            for col in ['calories', 'fat', 'sugar', 'sodium', 'protein', 'saturated_fat', 'carbs']:
+                df_original[col] = nutrition_data.apply(lambda x: x[col])
+
             # 1. Missing Values Bar Chart
             st.markdown("#### Missing Values Analysis")
             import plotly.graph_objects as go
