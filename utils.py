@@ -164,12 +164,21 @@ def plot_embeddings_tsne(embeddings, labels, method='t-SNE', n_samples=1000):
         x='x',
         y='y',
         hover_data=['recipe'],
-        title=f'{method} Visualization of Recipe Embeddings',
-        labels={'x': f'{method} Component 1', 'y': f'{method} Component 2'}
+        title=f'Recipe Similarity Map ({method})',
+        labels={
+            'x': 'Dimension 1 (Recipe Features)',
+            'y': 'Dimension 2 (Recipe Features)',
+            'recipe': 'Recipe Name'
+        }
     )
 
     fig.update_traces(marker=dict(size=5, opacity=0.6))
-    fig.update_layout(height=600)
+    fig.update_layout(
+        height=600,
+        xaxis_title='Dimension 1 (Recipe Features)',
+        yaxis_title='Dimension 2 (Recipe Features)',
+        font=dict(size=12)
+    )
 
     return fig
 

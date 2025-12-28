@@ -121,6 +121,146 @@ def main():
 
         st.divider()
 
+        # Data Preprocessing Visualizations
+        st.subheader("📊 Data Preprocessing Analysis")
+
+        try:
+            # Load original data for comparison
+            df_original = pd.read_csv('data/recipes_sampled.csv')
+
+            # 1. Missing Values Bar Chart
+            st.markdown("#### Missing Values Analysis")
+            import plotly.graph_objects as go
+
+            # Calculate missing values before preprocessing
+            missing_before = df_original[['name', 'minutes', 'tags', 'nutrition', 'n_steps', 'steps', 'description', 'ingredients']].isnull().sum()
+            missing_after = df[['name', 'minutes', 'tags', 'nutrition', 'n_steps', 'steps', 'description', 'ingredients']].isnull().sum()
+
+            fig_missing = go.Figure(data=[
+                go.Bar(name='Before Cleaning', x=missing_before.index, y=missing_before.values, marker_color='#FF6B6B'),
+                go.Bar(name='After Cleaning', x=missing_after.index, y=missing_after.values, marker_color='#4ECDC4')
+            ])
+            fig_missing.update_layout(
+                title='Missing Values: Before vs After Cleaning',
+                xaxis_title='Columns',
+                yaxis_title='Number of Missing Values',
+                barmode='group',
+                height=400
+            )
+            st.plotly_chart(fig_missing, use_container_width=True)
+
+            st.divider()
+
+            # 2. Outlier Detection - Box Plots
+            st.markdown("#### Outlier Detection & Removal")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                # Minutes boxplot
+                fig_minutes = go.Figure()
+                fig_minutes.add_trace(go.Box(y=df_original['minutes'], name='Before', marker_color='#FF6B6B'))
+                fig_minutes.add_trace(go.Box(y=df['minutes'], name='After', marker_color='#4ECDC4'))
+                fig_minutes.update_layout(
+                    title='Cooking Time Distribution (minutes)',
+                    yaxis_title='Minutes',
+                    height=400,
+                    showlegend=True
+                )
+                st.plotly_chart(fig_minutes, use_container_width=True)
+
+            with col2:
+                # Calories boxplot
+                fig_calories = go.Figure()
+                fig_calories.add_trace(go.Box(y=df_original['calories'], name='Before', marker_color='#FF6B6B'))
+                fig_calories.add_trace(go.Box(y=df['calories'], name='After', marker_color='#4ECDC4'))
+                fig_calories.update_layout(
+                    title='Calories Distribution',
+                    yaxis_title='Calories',
+                    height=400,
+                    showlegend=True
+                )
+                st.plotly_chart(fig_calories, use_container_width=True)
+
+            st.caption(f"Removed {len(df_original) - len(df)} outlier recipes ({((len(df_original) - len(df)) / len(df_original) * 100):.1f}%)")
+
+            st.divider()
+
+            # 3. Dish Type Distribution - Pie Chart
+            st.markdown("#### Dish Type Distribution")
+
+            # Extract dish types from tags
+            dish_types = {
+                'Main Course': 0,
+                'Dessert': 0,
+                'Breakfast': 0,
+                'Side Dish': 0,
+                'Snack': 0,
+                'Salad': 0,
+                'Other': 0
+            }
+
+            for tags_str in df['tags_clean']:
+                tags_lower = str(tags_str).lower()
+                if any(keyword in tags_lower for keyword in ['main-dish', 'lunch', 'dinner']):
+                    dish_types['Main Course'] += 1
+                elif 'dessert' in tags_lower or 'sweet' in tags_lower:
+                    dish_types['Dessert'] += 1
+                elif 'breakfast' in tags_lower or 'brunch' in tags_lower:
+                    dish_types['Breakfast'] += 1
+                elif 'side-dish' in tags_lower:
+                    dish_types['Side Dish'] += 1
+                elif 'snack' in tags_lower or 'appetizer' in tags_lower:
+                    dish_types['Snack'] += 1
+                elif 'salad' in tags_lower:
+                    dish_types['Salad'] += 1
+                else:
+                    dish_types['Other'] += 1
+
+            fig_pie = go.Figure(data=[go.Pie(
+                labels=list(dish_types.keys()),
+                values=list(dish_types.values()),
+                hole=0.3,
+                marker=dict(colors=['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#B8B8B8'])
+            )])
+            fig_pie.update_layout(
+                title='Distribution of Dish Types in Dataset',
+                height=500
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
+
+            st.divider()
+
+            # 4. Sample Data - Content Field Cleaning
+            st.markdown("#### Content Field: Before vs After Cleaning")
+            st.caption("Example showing how ingredients, tags, and steps are combined into the 'content' field")
+
+            # Show a sample recipe
+            sample_idx = 0
+            sample_original = df_original.iloc[sample_idx]
+            sample_cleaned = df.iloc[sample_idx]
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown("**Before (Separate Fields)**")
+                st.write(f"**Name:** {sample_original['name']}")
+                st.write(f"**Tags:** {sample_original['tags'][:100]}...")
+                st.write(f"**Ingredients:** {str(sample_original['ingredients'])[:100]}...")
+
+            with col2:
+                st.markdown("**After (Combined Content)**")
+                st.write(f"**Name:** {sample_cleaned['name']}")
+                st.write(f"**Content:** {str(sample_cleaned['content'])[:200]}...")
+
+            # Show statistics
+            st.info(f"📊 Dataset reduced from {len(df_original):,} to {len(df):,} recipes after cleaning ({(len(df)/len(df_original)*100):.1f}% retained)")
+
+        except Exception as e:
+            st.warning(f"Could not load preprocessing visualizations: {e}")
+
+        st.divider()
+
         # Visualizations
         st.subheader("Data Insights")
 
